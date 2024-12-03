@@ -1,0 +1,7 @@
+name: MySession
+
+windows:
+  - name: first_window
+    cmd: echo "First window!"
+  - name: second_window
+    cmd: echo "Second window!"
