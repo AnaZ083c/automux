@@ -1,7 +1,8 @@
-# TMUX config for each project
+# Automux - tmux config for each project
 **NOTE**: This is still a work in progress, so not all features will work properly.
 
-## Requirements
+## Development
+### Requirements
 1. tmux 3.4
 2. python 3.12
 3. environment:
@@ -11,21 +12,41 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Running
-### Using example config
+### Running
+#### Using example config
 To run this on the example using the [example config](.tmux/session.yml):
 ```shell
 python main.py
 ```
 
-#### Result
+##### Result
 As a result, you should be attached to a session named `MySession`, have two windows (`first_window`, `second_window`, and on both you should see an executed `echo` command)
 
+### Makefile
+This project uses `Makefile` to `format` the code and do `lint` and `sanity` checks.
 
-## Config
+To use the `Makefile`, simply use `make` to display all available targets.
+
+```console
+$ make
+help                           Prints help for targets with comments
+format                         Format using ruff
+lint                           Lint using mypy and ruff
+sanity                         Sanity check before formatting
+```
+
+
+### TODO:
+- [ ] make the config per-project: each project should have a .tmux/session.yml to automatically create a session
+- [x] add panes support: user should be able to add an N amount of panes horizontally or vertically in each window
+- [x] default focus: which window and/or pane the user should have a focus on when the session is created and attached
+
+
+## How to use
+### Config
 The config should be present in your project's root in `.tmux/session.yml` (this statement is _not yet implemented_).
 
-### Example config
+#### Example config
 ```yaml
 name: MySession
 
@@ -58,7 +79,7 @@ start_at:
 | `start_at` | `dict` | Name of the starting window and index of the starting pane (on attach) | yes |
 
 
-### `windows` options
+#### `windows` options
 
 | Config | Type | Description | Optional |
 | --------------- | --------------- | --------------- | --------------- |
@@ -67,7 +88,7 @@ start_at:
 | `panes` | `list(dict)` | List of panes to be created in the window (splitting the window) | yes |
 
 
-### `panes` options
+#### `panes` options
 
 | Config | Type | Description | Optional |
 | --------------- | --------------- | --------------- | --------------- |
@@ -76,16 +97,9 @@ start_at:
 | `cmd` | `str` | A command to be executed in this pane | yes |
 
 
-### `start_at` options
+#### `start_at` options
 
 | Config | Type | Description | Optional |
 | --------------- | --------------- | --------------- | --------------- |
 | `window` | `str` | Name of the window to have active on attach | conditional yes; if `pane` is present |
 | `pane` | `int` | Index of the pane to have active on attach | conditional yes; if `window` is present |
-
-
-## TODO:
-- [ ] make the config per-project: each project should have a .tmux/session.yml to automatically create a session
-- [x] add panes support: user should be able to add an N amount of panes horizontally or vertically in each window
-- [x] default focus: which window and/or pane the user should have a focus on when the session is created and attached
-

@@ -1,30 +1,30 @@
 import yaml
 import pathlib
 
-from subprocess import run, CalledProcessError, check_output, Popen, PIPE, STDOUT, DEVNULL
+from subprocess import run, CalledProcessError, check_output, DEVNULL
+from typing import Any
 
-from utils.tmux_window import TmuxWindow
+from automux.utils.tmux_window import TmuxWindow
 
 
 class TmuxSession:
     def __init__(
         self,
-        name: str = None,
+        name: str | None = None,
         windows: list[TmuxWindow] = [],
-        start_at: dict[str, any] = None,
+        start_at: dict[str, Any] | None = None,
     ):
         self.name = name
         self.windows = windows
         self.start_at = start_at
 
-
     @staticmethod
-    def get_from_config(filename: str) -> 'TmuxSession':
+    def get_from_config(filename: str) -> "TmuxSession":
         if not pathlib.Path(filename).is_file():
             raise Exception("Config is nowhere to be found")
         try:
             print(f"Getting session data from config {filename}")
-            with open(filename, 'r') as file:
+            with open(filename, "r") as file:
                 config = yaml.safe_load(file)
 
             tmux_session = TmuxSession()
@@ -43,42 +43,38 @@ class TmuxSession:
 
                 tmux_session.windows.append(tmux_window)
 
-            print(f"Retrieved all data")
+            print("Retrieved all data")
             return tmux_session
         except Exception as e:
             raise Exception(f"Couldn't get config: {e}")
 
-    
     def create(self) -> None:
         try:
+            assert self.name is not None
             print(f"Creating session {self.name}")
-            run(['tmux', 'new-session', '-d', '-s', self.name])
+            run(["tmux", "new-session", "-d", "-s", self.name])
         except CalledProcessError as e:
             raise Exception(f"Failed to create session {self.name}: {e}")
 
-    
     def is_live(self) -> bool:
         try:
-            result = check_output(['tmux', 'has-session', '-t', self.name], stderr=DEVNULL, text=True)
-        except CalledProcessError as e:
+            assert self.name is not None
+            check_output(["tmux", "has-session", "-t", self.name], stderr=DEVNULL, text=True)
+        except CalledProcessError:
             return False
-        
-        return True
 
+        return True
 
     def attach(self) -> None:
         try:
             print(f"Attaching to session: {self.name}")
-            run(['tmux', 'attach-session', '-t', f'{self.name}:0'])
+            run(["tmux", "attach-session", "-t", f"{self.name}:0"])
         except CalledProcessError as e:
             raise Exception(f"Failed to create session {self.name}: {e}")
-
 
     def kill(self) -> None:
         try:
             print(f"Killing session: {self.name}")
-            run(['tmux', 'kill-session', '-t', f'{self.name}'])
+            run(["tmux", "kill-session", "-t", f"{self.name}"])
         except CalledProcessError as e:
             raise Exception(f"Failed to kill session {self.name}: {e}")
-
-
