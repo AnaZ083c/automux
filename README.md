@@ -3,9 +3,10 @@
 
 ## Development
 ### Requirements
-1. tmux 3.4
-2. python 3.12
-3. environment:
+1. [TMUX](https://github.com/tmux/tmux/wiki/Installing#installing-tmux) >= 3.4
+2. Python 3.12
+
+### Environment setup
 ```shell
 python3.12 -m venv .venv
 source .venv/bin/activate
