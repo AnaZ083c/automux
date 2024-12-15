@@ -1,15 +1,18 @@
-from utils.tmux_pane import TmuxPane
-from utils.tmux_window import TmuxWindow
-from utils.tmux_session import TmuxSession
+from automux.utils.tmux_pane import TmuxPane
+from automux.utils.tmux_window import TmuxWindow
+from automux.utils.tmux_session import TmuxSession
 
 
 try:
-    tmux_session = TmuxSession.get_from_config('.tmux/session.yml')
+    tmux_session = TmuxSession.get_from_config(".tmux/session.yml")
+    assert tmux_session.name is not None
 
     if not tmux_session.is_live():
         tmux_session.create()
         for i, window in enumerate(tmux_session.windows):
             window.create(tmux_session.name, i)
+            assert window.name is not None
+
             if window.cmd is not None:
                 window.exec_cmd(tmux_session.name)
 
@@ -21,8 +24,8 @@ try:
                         pane.exec_cmd(tmux_session.name, window.name, j)
 
         if tmux_session.start_at is not None:
-            start_window = tmux_session.start_at['window'] if 'window' in tmux_session.start_at else 0
-            start_pane_idx = tmux_session.start_at['pane'] if 'pane' in tmux_session.start_at else 0
+            start_window = tmux_session.start_at["window"] if "window" in tmux_session.start_at else 0
+            start_pane_idx = tmux_session.start_at["pane"] if "pane" in tmux_session.start_at else 0
 
             TmuxWindow.select(tmux_session.name, start_window)
             TmuxPane.select(tmux_session.name, start_window, start_pane_idx)
