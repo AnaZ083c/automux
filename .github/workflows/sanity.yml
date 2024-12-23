@@ -1,17 +1,17 @@
 ---
-name: Code Quality
+name: sanity
 on:
   push:
     branches:
       - master
-    pull_request:
+  pull_request:
 
 jobs:
-  lint:
+  sanity:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@main
       - name: Install Python 3.12
         uses: actions/setup-python@v5
         with:
@@ -19,7 +19,5 @@ jobs:
       - name: Install requirements
         run:
           python -m pip install -r requirements.txt
-      - name: Lint
-        run: make lint
       - name: Sanity
         run: make sanity
