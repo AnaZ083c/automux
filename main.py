@@ -7,7 +7,6 @@ from automux.utils.tmux_session import TmuxSession
 
 AUTOMUX_CACHE_PATH = "~/.cache/automux/sessions.yml"
 
-
 def main(project_root_path: str) -> None:
     try:
         if project_root_path[len(project_root_path) - 1] == "/":
