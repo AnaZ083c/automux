@@ -1,6 +1,6 @@
 from subprocess import run, CalledProcessError
 
-from automux.utils.tmux import Tmux
+from utils.tmux import Tmux
 
 
 class TmuxPane:
@@ -22,7 +22,7 @@ class TmuxPane:
         pane_idx: int,
     ) -> None:
         try:
-            print(f"Selected pane: {session_name}:{window_name}.{pane_idx}")
+            print(f"Info: Selected pane: {session_name}:{window_name}.{pane_idx}")
             run(["tmux", "select-pane", "-t", f"{session_name}:{window_name}.{pane_idx}"])
         except CalledProcessError as e:
             raise Exception(f"Failed to select pane: {session_name}:{window_name}.{pane_idx}, error: {e}")
@@ -30,7 +30,7 @@ class TmuxPane:
     def exec_cmd(self, session_name: str, window_name: str, index: int) -> None:
         try:
             assert self.cmd is not None
-            print(f"Executing command on window {window_name}.{index}: {self.cmd}")
+            print(f"Info: Executing command on window {window_name}.{index}: {self.cmd}")
             run(["tmux", "send-keys", "-t", f"{session_name}:{window_name}.{index}", self.cmd, "C-m"])
         except CalledProcessError as e:
             raise Exception(f"Failed to execute the command: {self.cmd}, error: {e}")

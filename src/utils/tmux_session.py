@@ -4,7 +4,7 @@ import pathlib
 from subprocess import run, CalledProcessError, check_output, DEVNULL
 from typing import Any
 
-from automux.utils.tmux_window import TmuxWindow
+from utils.tmux_window import TmuxWindow
 
 
 class TmuxSession:
@@ -21,9 +21,9 @@ class TmuxSession:
     @staticmethod
     def get_from_config(filename: str) -> "TmuxSession":
         if not pathlib.Path(filename).is_file():
-            raise Exception("Config is nowhere to be found")
+            raise Exception(f"Config is nowhere to be found: {filename}")
         try:
-            print(f"Getting session data from config {filename}")
+            print(f"Info: Getting session data from config {filename}")
             with open(filename, "r") as file:
                 config = yaml.safe_load(file)
 
@@ -43,7 +43,7 @@ class TmuxSession:
 
                 tmux_session.windows.append(tmux_window)
 
-            print("Retrieved all data")
+            print("Info: Retrieved all data")
             return tmux_session
         except Exception as e:
             raise Exception(f"Couldn't get config: {e}")
@@ -51,7 +51,7 @@ class TmuxSession:
     def create(self) -> None:
         try:
             assert self.name is not None
-            print(f"Creating session {self.name}")
+            print(f"Info: Creating session {self.name}")
             run(["tmux", "new-session", "-d", "-s", self.name])
         except CalledProcessError as e:
             raise Exception(f"Failed to create session {self.name}: {e}")
@@ -67,14 +67,14 @@ class TmuxSession:
 
     def attach(self) -> None:
         try:
-            print(f"Attaching to session: {self.name}")
+            print(f"Info: Attaching to session: {self.name}")
             run(["tmux", "attach-session", "-t", f"{self.name}:0"])
         except CalledProcessError as e:
             raise Exception(f"Failed to create session {self.name}: {e}")
 
     def kill(self) -> None:
         try:
-            print(f"Killing session: {self.name}")
+            print(f"Info: Killing session: {self.name}")
             run(["tmux", "kill-session", "-t", f"{self.name}"])
         except CalledProcessError as e:
             raise Exception(f"Failed to kill session {self.name}: {e}")

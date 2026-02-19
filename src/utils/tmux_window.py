@@ -1,7 +1,7 @@
 from subprocess import run, CalledProcessError
 from typing import Any
 
-from automux.utils.tmux_pane import TmuxPane
+from utils.tmux_pane import TmuxPane
 
 
 class TmuxWindow:
@@ -22,7 +22,7 @@ class TmuxWindow:
         window_name: str | int,
     ) -> None:
         try:
-            print(f"Selected window: {session_name}:{window_name}")
+            print(f"Info: Selected window: {session_name}:{window_name}")
             run(["tmux", "select-window", "-t", f"{session_name}:{window_name}"])
         except CalledProcessError as e:
             raise Exception(f"Failed to select window: {session_name}:{window_name}, error: {e}")
@@ -33,7 +33,7 @@ class TmuxWindow:
     ) -> list[TmuxPane] | None:
         tmux_panes = []
         if panes_dicts is None:
-            print("No panes in this window.")
+            print("Info: No panes in this window.")
             return None
 
         for pane in panes_dicts:
@@ -51,7 +51,7 @@ class TmuxWindow:
     def exec_cmd(self, session_name: str) -> None:
         try:
             assert self.cmd is not None
-            print(f"Executing command: {self.cmd}")
+            print(f"Info: Executing command: {self.cmd}")
             run(["tmux", "send-keys", "-t", f"{session_name}:{self.name}", self.cmd, "C-m"])
         except CalledProcessError as e:
             raise Exception(f"Failed to execute the command: {self.cmd}, error: {e}")
@@ -59,7 +59,7 @@ class TmuxWindow:
     def create(self, session_name: str, index: int) -> None:
         try:
             assert self.name is not None
-            print(f"Creating a new window {self.name} at index {index}")
+            print(f"Info: Creating a new window {self.name} at index {index}")
             if index == 0:
                 run(["tmux", "rename-window", "-t", f"{session_name}:{index}", self.name])
             else:

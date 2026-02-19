@@ -1,6 +1,10 @@
+# python
 .venv
 __pycache__
 .mypy_cache
 .ruff_cache
-main.c
-bin
+
+# build cache
+build
+dist
+automux.spec

@@ -1,0 +1,12 @@
+version: "3.9"
+networks:
+  tmux_sandbox:
+    driver: bridge
+
+services:
+  sandbox:
+    build: .
+    container_name: sandbox
+    command: tail -F /dev/null
+    networks:
+      - tmux_sandbox
