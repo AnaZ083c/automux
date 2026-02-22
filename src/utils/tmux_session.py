@@ -18,8 +18,15 @@ class TmuxSession:
         self.windows = windows
         self.start_at = start_at
 
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "name": self.name,
+            "windows": [w.to_dict() for w in self.windows],
+            "start_at": self.start_at,
+        }
+
     @staticmethod
-    def get_from_config(filename: str) -> "TmuxSession":
+    def from_config(filename: str) -> "TmuxSession":
         if not pathlib.Path(filename).is_file():
             raise Exception(f"Config is nowhere to be found: {filename}")
         try:
@@ -27,26 +34,34 @@ class TmuxSession:
             with open(filename, "r") as file:
                 config = yaml.safe_load(file)
 
-            tmux_session = TmuxSession()
-            tmux_session.name = config["name"]
+            return TmuxSession.from_dict(session=config)
+        except Exception as e:
+            raise Exception(f"Couldn't get config: {e}")
 
-            tmux_session.start_at = config["start_at"] if "start_at" in config else None
+    @staticmethod
+    def from_dict(session: dict[str, Any]) -> "TmuxSession":
+        if "name" not in session:
+            raise Exception("Invalid session configuration. Missing required option 'name'")
 
-            windows = config["windows"]
+        try:
+            tmux_session = TmuxSession(
+                name=session["name"],
+                windows=[],
+                start_at=session.get("start_at", None),
+            )
 
+            windows = session["windows"]
             for w in windows:
                 tmux_window = TmuxWindow(
                     name=w["name"],
-                    cmd=w["cmd"] if "cmd" in w else None,
-                    panes=w["panes"] if "panes" in w else None,
+                    cmd=w.get("cmd", None),
+                    panes=w.get("panes", None),
                 )
-
                 tmux_session.windows.append(tmux_window)
 
-            print("Info: Retrieved all data")
             return tmux_session
         except Exception as e:
-            raise Exception(f"Couldn't get config: {e}")
+            raise Exception(f"Couldn't process session configuration: {e}")
 
     def create(self) -> None:
         try:

@@ -15,6 +15,13 @@ class TmuxWindow:
         self.cmd = cmd
         self.panes = self.get_panes(panes)
 
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "name": self.name,
+            "cmd": self.cmd,
+            "panes": [p.to_dict() for p in self.panes],
+        }
+
     @classmethod
     def select(
         cls,

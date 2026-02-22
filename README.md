@@ -1,5 +1,15 @@
-# Automux - tmux config for each project
-**NOTE**: This is still a work in progress, so not all features will work properly.
+# Automux - manage Tmux sessions and workspaces
+
+## Installation
+```shell
+make build
+
+# in your .bashrc (or whatever other shell config)
+export PATH=$PATH:"path/to/automux/repo/dist"
+
+# test installation
+automux
+```
 
 ## Development
 ### Requirements
@@ -16,11 +26,11 @@ pip install -r requirements.txt
 #### Using example config
 To run this on the example using the [example config](.tmux/session.yml):
 ```shell
-python main.py
+python src/main.py
 ```
 
 ##### Result
-As a result, you should be attached to a session named `MySession`, have two windows (`first_window`, `second_window`, and on both you should see an executed `echo` command)
+Help will be printed out as shown in [How to use](#how-to-use).
 
 ### Makefile
 This project uses `Makefile` to `format` the code and do `lint` and `sanity` checks.
@@ -33,43 +43,40 @@ help                           Prints help for targets with comments
 format                         Format using ruff
 lint                           Lint using mypy and ruff
 sanity                         Sanity check before formatting
+build                          Build automux binary
 ```
-
-
-### TODO:
-- [ ] make the config per-project: each project should have a .tmux/session.yml to automatically create a session
-- [x] add panes support: user should be able to add an N amount of panes horizontally or vertically in each window
-- [x] default focus: which window and/or pane the user should have a focus on when the session is created and attached
 
 
 ## How to use
-### Config
-The config should be present in your project's root in `.tmux/session.yml` (this statement is _not yet implemented_).
+```console
+$ automux
+usage: automux [-h] [-s SESSION] [-w WORKSPACE] [-cw CREATE_WORKSPACE] [-cs CREATE_SESSION] [-i] [-lw] [-ls] [-l]
 
-#### Example config
-```yaml
-name: MySession
+a tmux session and workspace management helper
 
-windows:
-  - name: first_window
-    panes:
-      - vertical: 50
-        cmd: echo "First pane!"
-      - horizontal: 30
-        cmd: echo "Second pane!"
-      - vertical: 10
-        cmd: echo "Third pane!"
-    cmd: echo "First window!"
-  - name: second_window
-    panes:
-      - horizontal: 50
-      - vertical: 50
-    cmd: echo "Second window!"
-
-start_at:
-  window: first_window
-  pane: 0
+options:
+  -h, --help            show this help message and exit
+  -s, --session SESSION
+                        Start the session using a project's path or session's registered name (using the -R option). Path must be at the root of
+                        the project.
+  -w, --workspace WORKSPACE
+                        Start a tmux workspace containing sessions using a project's path or session's registered name (using the -R option).
+                        Path must be at the root of the project.
+  -cw, --create-workspace CREATE_WORKSPACE
+                        Create a tmux workspace config file (comes with a commented example)
+  -cs, --create-session CREATE_SESSION
+                        Create a tmux session config file (comes with a commented example)
+  -i, --init            Init automux configuration: '~/.config/automux/'
+  -lw, --list-workspaces
+                        List all workspaces (the file names in your configs).
+  -ls, --list-sessions  List all sessions (the file names in your configs).
+  -l, --list            List all sessions and workspaces (the file names in your configs).
 ```
+
+### Session config
+
+> [!NOTE]
+> Your session configuration should be in '~/.config/automux/sessions/'. See `automux --help` for more info.
 
 
 | Config | Type | Description | Optional |
@@ -103,3 +110,88 @@ start_at:
 | --------------- | --------------- | --------------- | --------------- |
 | `window` | `str` | Name of the window to have active on attach | conditional yes; if `pane` is present |
 | `pane` | `int` | Index of the pane to have active on attach | conditional yes; if `window` is present |
+
+
+#### Example session config
+```yaml
+name: MySession
+
+windows:
+  - name: first_window
+    panes:
+      - vertical: 50
+        cmd: echo "First pane!"
+      - horizontal: 30
+        cmd: echo "Second pane!"
+      - vertical: 10
+        cmd: echo "Third pane!"
+    cmd: echo "First window!"
+  - name: second_window
+    panes:
+      - horizontal: 50
+      - vertical: 50
+    cmd: echo "Second window!"
+
+start_at:
+  window: first_window
+  pane: 0
+```
+
+
+### Workspace config
+
+> [!NOTE]
+> Your workspace configuration should be in '~/.config/automux/workspace/'. See `automux --help` for more info.
+
+
+| Config | Type | Description | Optional |
+| --------------- | --------------- | --------------- | --------------- |
+| `name` | `str` | Name of the tmux workspace | `no` |
+| `sessions` | `list(dict)` | A list of session objects (see [Session config](#session-config)) | `no` |
+
+
+#### Example workspace config
+```yaml
+name: MyWorkspace
+
+sessions:
+  - name: MyMainSession
+    windows:
+      - name: first_window
+        panes:
+          - vertical: 50
+            cmd: echo "First pane!"
+          - horizontal: 30
+            cmd: echo "Second pane!"
+          - vertical: 10
+            cmd: echo "Third pane!"
+        cmd: echo "First window!"
+      - name: second_window
+        panes:
+          - horizontal: 50
+          - vertical: 50
+        cmd: echo "Second window!"
+    start_at:
+      window: first_window
+      pane: 0
+
+  - name: MyHelperSession
+    windows:
+      - name: helper_first_window
+        panes:
+          - vertical: 50
+            cmd: echo "First pane 123!"
+          - horizontal: 30
+            cmd: echo "Second pane 123!"
+          - vertical: 10
+            cmd: echo "Third pane 123!"
+        cmd: echo "First window 123!"
+      - name: helper_second_window
+        panes:
+          - horizontal: 50
+          - vertical: 50
+        cmd: echo "Second window 123!"
+    start_at:
+      window: helper_first_window
+      pane: 0
+```

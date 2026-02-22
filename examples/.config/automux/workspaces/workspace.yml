@@ -1,0 +1,42 @@
+name: MyWorkspace
+
+sessions:
+  - name: MyMainSession
+    windows:
+      - name: first_window
+        panes:
+          - vertical: 50
+            cmd: echo "First pane!"
+          - horizontal: 30
+            cmd: echo "Second pane!"
+          - vertical: 10
+            cmd: echo "Third pane!"
+        cmd: echo "First window!"
+      - name: second_window
+        panes:
+          - horizontal: 50
+          - vertical: 50
+        cmd: echo "Second window!"
+    start_at:
+      window: first_window
+      pane: 0
+
+  - name: MyHelperSession
+    windows:
+      - name: helper_first_window
+        panes:
+          - vertical: 50
+            cmd: echo "First pane 123!"
+          - horizontal: 30
+            cmd: echo "Second pane 123!"
+          - vertical: 10
+            cmd: echo "Third pane 123!"
+        cmd: echo "First window 123!"
+      - name: helper_second_window
+        panes:
+          - horizontal: 50
+          - vertical: 50
+        cmd: echo "Second window 123!"
+    start_at:
+      window: helper_first_window
+      pane: 0

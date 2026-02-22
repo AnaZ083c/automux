@@ -1,3 +1,4 @@
+from typing import Any
 from subprocess import run, CalledProcessError
 
 from utils.tmux import Tmux
@@ -13,6 +14,13 @@ class TmuxPane:
         self.position = position
         self.size = size
         self.cmd = cmd
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "position": self.position,
+            "size": self.size,
+            "cmd": self.cmd,
+        }
 
     @classmethod
     def select(
