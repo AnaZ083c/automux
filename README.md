@@ -1,5 +1,16 @@
 # Automux - manage Tmux sessions and workspaces
 
+## Requirements
+1. Tmux 3.4+
+    * 3.6a works as well but didn't test on other versions so, if you have any other version, know that it might not work properly there.
+2. Python 3.12
+3. environment:
+```shell
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
 ## Installation
 ```shell
 make build
@@ -13,45 +24,6 @@ source ~/.bashrc  # or restart your terminal
 # test installation
 automux
 ```
-
-> [!NOTE]
-> See [requirements](#requirements) for setting up your Python environment first before proceeding with installation.
-
-## Development
-### Requirements
-1. tmux 3.4
-2. python 3.12
-3. environment:
-```shell
-python3.12 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-### Running
-#### Using example config
-To run this on the example using the [example config](.tmux/session.yml):
-```shell
-python src/main.py
-```
-
-##### Result
-Help will be printed out as shown in [How to use](#how-to-use).
-
-### Makefile
-This project uses `Makefile` to `format` the code and do `lint` and `sanity` checks.
-
-To use the `Makefile`, simply use `make` to display all available targets.
-
-```console
-$ make
-help                           Prints help for targets with comments
-format                         Format using ruff
-lint                           Lint using mypy and ruff
-sanity                         Sanity check before formatting
-build                          Build automux binary
-```
-
 
 ## How to use
 ```console
@@ -145,7 +117,6 @@ start_at:
   pane: 0
 ```
 
-
 ### Workspace config
 
 > [!NOTE]
@@ -204,4 +175,31 @@ sessions:
     start_at:
       window: helper_first_window
       pane: 0
+```
+
+## Development
+See [requirements](#requirements) first.
+
+### Running
+#### Using example config
+To run this on the example using the [example config](.tmux/session.yml):
+```shell
+python src/main.py
+```
+
+##### Result
+Help will be printed out as shown in [How to use](#how-to-use).
+
+### Makefile
+This project uses `Makefile` to `format` the code and do `lint` and `sanity` checks.
+
+To use the `Makefile`, simply use `make` to display all available targets.
+
+```console
+$ make
+help                           Prints help for targets with comments
+format                         Format using ruff
+lint                           Lint using mypy and ruff
+sanity                         Sanity check before formatting
+build                          Build automux binary
 ```
