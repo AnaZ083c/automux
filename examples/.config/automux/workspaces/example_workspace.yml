@@ -1,7 +1,8 @@
-name: MyWorkspace
+name: example_workspace
 
 sessions:
-  - name: MyMainSession
+  - name: main_session
+    workdir: ~/Projects
     windows:
       - name: first_window
         panes:
@@ -21,7 +22,8 @@ sessions:
       window: first_window
       pane: 0
 
-  - name: MyHelperSession
+  - name: helper_session
+    workdir: ~/Projects
     windows:
       - name: helper_first_window
         panes:

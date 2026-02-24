@@ -13,7 +13,8 @@ AUTOMUX_CACHE_PATH = "~/.cache/automux/sessions.yml"
 
 
 class Automux:
-    config_path = Path("~/.config/automux")
+    config_path = Path.home() / Path(".config/automux")
+    # config_path = Path("./examples/.config/automux")
     sessions_config = config_path / Path("sessions/")
     workspaces_config = config_path / Path("workspaces/")
 
@@ -22,10 +23,11 @@ class Automux:
         ## NOTE: This is a generated example for
         ## you to edit your workspace from
         ###
-        # name: WorkspaceName
+        # name: workspace_name
         #
         # sessions:
-        #   - name: MyMainSession
+        #   - name: main_session
+        #     workdir: /path/to/your/work/dir
         #     windows:
         #       - name: first_window
         #         panes:
@@ -44,33 +46,13 @@ class Automux:
         #     start_at:
         #       window: first_window
         #       pane: 0
-        #
-        #   - name: MyHelperSession
-        #     windows:
-        #       - name: helper_first_window
-        #         panes:
-        #           - vertical: 50
-        #             cmd: echo "First pane 123!"
-        #           - horizontal: 30
-        #             cmd: echo "Second pane 123!"
-        #           - vertical: 10
-        #             cmd: echo "Third pane 123!"
-        #         cmd: echo "First window 123!"
-        #       - name: helper_second_window
-        #         panes:
-        #           - horizontal: 50
-        #           - vertical: 50
-        #         cmd: echo "Second window 123!"
-        #     start_at:
-        #       window: helper_first_window
-        #       pane: 0
     """).strip()
 
     session_example = textwrap.dedent("""
         ## NOTE: This is a generated example for
         ## you to edit your session from
         ###
-        # name: SessionName
+        # name: session_name
         #
         # windows:
         #   - name: first_window
@@ -111,6 +93,9 @@ class Automux:
     def list_workspaces(cls) -> None:
         workspaces = [w for e in cls.extensions for w in cls.workspaces_config.glob(e) if w.is_file()]
         print("Workspaces:")
+        if len(workspaces) == 0:
+            print("No workspaces yet.")
+            return
         for w in workspaces:
             if not w.is_file():
                 continue
@@ -120,6 +105,9 @@ class Automux:
     def list_sessions(cls) -> None:
         sessions = [s for e in cls.extensions for s in cls.sessions_config.glob(e) if s.is_file()]
         print("Sessions:")
+        if len(sessions) == 0:
+            print("No sessions yet.")
+            return
         for s in sessions:
             if not s.is_file():
                 continue
@@ -156,8 +144,10 @@ class Automux:
     @classmethod
     def create_workspace(cls, workspace_name: str) -> None:
         if not cls.is_inited():
-            print(f"Error: automux configuration not found in '{cls.config_path}'\n ",
-                  "You must first create an automux config. You can do this manually or use 'automux --init'")
+            print(
+                f"Error: automux configuration not found in '{cls.config_path}'\n ",
+                "You must first create an automux config. You can do this manually or use 'automux --init'",
+            )
             sys.exit(2)
 
         config_path = cls.workspaces_config / Path(f"{workspace_name}.yml")
@@ -168,14 +158,14 @@ class Automux:
 
         try:
             for session in tmux_workspace.sessions:
-                cls.create_session_from_object(tmux_session=session)
+                cls.create_session_from_object(tmux_session=session, auto_attach=False)
                 print(f"Info: Created session '{session.name}'\n")
         except Exception as e:
             print(f"Error: Something went wrong while creating workspace '{tmux_workspace.name}':\n {e}")
             sys.exit(1)
 
     @classmethod
-    def create_session_from_object(cls, tmux_session: TmuxSession) -> None:
+    def create_session_from_object(cls, tmux_session: TmuxSession, auto_attach: bool) -> None:
         if tmux_session.name is None:
             print("Error: Invalid session")
             sys.exit(1)
@@ -184,7 +174,7 @@ class Automux:
             if not tmux_session.is_live():
                 tmux_session.create()
                 for i, window in enumerate(tmux_session.windows):
-                    window.create(tmux_session.name, i)
+                    window.create(tmux_session.name, tmux_session.workdir, i)
                     assert window.name is not None
 
                     if window.cmd is not None:
@@ -193,7 +183,7 @@ class Automux:
                     if window.panes is not None:
                         for j, pane in enumerate(window.panes):
                             print(f"Info: Pane position: {pane.position}, size: {pane.size}")
-                            pane.create(tmux_session.name, window.name, j)
+                            pane.create(tmux_session.name, tmux_session.workdir, window.name, j)
                             if pane.cmd is not None:
                                 pane.exec_cmd(tmux_session.name, window.name, j)
 
@@ -206,7 +196,8 @@ class Automux:
             else:
                 print(f"Info: Session {tmux_session.name} already exists")
 
-            tmux_session.attach()
+            if auto_attach:
+                tmux_session.attach()
         except Exception as e:
             if tmux_session.is_live():
                 tmux_session.kill()
@@ -216,9 +207,11 @@ class Automux:
     @classmethod
     def create_session_from_config(cls, session_name: str) -> None:
         if not cls.is_inited():
-            print(f"Error: automux configuration not found in '{cls.config_path}'\n ",
-                  "You must first create an automux config. You can do this manually or use 'automux --init'")
+            print(
+                f"Error: automux configuration not found in '{cls.config_path}'\n ",
+                "You must first create an automux config. You can do this manually or use 'automux --init'",
+            )
             sys.exit(2)
 
         tmux_session = TmuxSession.from_config(cls.sessions_config / Path(f"{session_name}.yml"))
-        cls.create_session_from_object(tmux_session=tmux_session)
+        cls.create_session_from_object(tmux_session=tmux_session, auto_attach=False)

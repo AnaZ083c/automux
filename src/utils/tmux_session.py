@@ -1,5 +1,5 @@
 import yaml
-import pathlib
+from pathlib import Path
 
 from subprocess import run, CalledProcessError, check_output, DEVNULL
 from typing import Any
@@ -11,11 +11,13 @@ class TmuxSession:
     def __init__(
         self,
         name: str | None = None,
-        windows: list[TmuxWindow] = [],
+        workdir: str | None = None,
+        windows: list[TmuxWindow] | None = None,
         start_at: dict[str, Any] | None = None,
     ):
         self.name = name
-        self.windows = windows
+        self.workdir = str(Path(workdir if workdir is not None else Path.cwd()).expanduser())
+        self.windows = windows if windows is not None else []
         self.start_at = start_at
 
     def to_dict(self) -> dict[str, Any]:
@@ -27,7 +29,7 @@ class TmuxSession:
 
     @staticmethod
     def from_config(filename: str) -> "TmuxSession":
-        if not pathlib.Path(filename).is_file():
+        if not Path(filename).is_file():
             raise Exception(f"Config is nowhere to be found: {filename}")
         try:
             print(f"Info: Getting session data from config {filename}")
@@ -46,6 +48,7 @@ class TmuxSession:
         try:
             tmux_session = TmuxSession(
                 name=session["name"],
+                workdir=session.get("workdir", None),
                 windows=[],
                 start_at=session.get("start_at", None),
             )
@@ -59,21 +62,26 @@ class TmuxSession:
                 )
                 tmux_session.windows.append(tmux_window)
 
+            print(f"WORKDIR: {tmux_session.workdir}")
             return tmux_session
         except Exception as e:
             raise Exception(f"Couldn't process session configuration: {e}")
 
     def create(self) -> None:
         try:
-            assert self.name is not None
-            print(f"Info: Creating session {self.name}")
-            run(["tmux", "new-session", "-d", "-s", self.name])
+            if self.name is None:
+                raise Exception("Missing session name in your session config")
+
+            print(f"Info: Creating session {self.name} in working directory in '{self.workdir}'")
+            run(["tmux", "new-session", "-d", "-s", self.name, "-c", self.workdir], check=True)
         except CalledProcessError as e:
             raise Exception(f"Failed to create session {self.name}: {e}")
 
     def is_live(self) -> bool:
         try:
-            assert self.name is not None
+            if self.name is None:
+                raise Exception("Missing session name in your session config")
+
             check_output(["tmux", "has-session", "-t", self.name], stderr=DEVNULL, text=True)
         except CalledProcessError:
             return False

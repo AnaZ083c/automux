@@ -7,9 +7,15 @@ make build
 # in your .bashrc (or whatever other shell config)
 export PATH=$PATH:"path/to/automux/repo/dist"
 
+# apply changes
+source ~/.bashrc  # or restart your terminal
+
 # test installation
 automux
 ```
+
+> [!NOTE]
+> See [requirements](#requirements) for setting up your Python environment first before proceeding with installation.
 
 ## Development
 ### Requirements
@@ -76,12 +82,13 @@ options:
 ### Session config
 
 > [!NOTE]
-> Your session configuration should be in '~/.config/automux/sessions/'. See `automux --help` for more info.
+> Your session configuration should be in `~/.config/automux/sessions/`. See `automux --help` for more info.
 
 
 | Config | Type | Description | Optional |
 | --------------- | --------------- | --------------- | --------------- |
 | `name` | `str` | Name of the session | no |
+| `workdir` | `str` | Session's working directory. If not set, default will be the directory from where `automux` was called from | yes |
 | `windows` | `list(dict)` | List of windows to be created in the session | yes |
 | `start_at` | `dict` | Name of the starting window and index of the starting pane (on attach) | yes |
 
@@ -114,7 +121,8 @@ options:
 
 #### Example session config
 ```yaml
-name: MySession
+name: example_session
+workdir: path/to/work/dir
 
 windows:
   - name: first_window
@@ -141,21 +149,22 @@ start_at:
 ### Workspace config
 
 > [!NOTE]
-> Your workspace configuration should be in '~/.config/automux/workspace/'. See `automux --help` for more info.
+> Your workspace configuration should be in `~/.config/automux/workspace/`. See `automux --help` for more info.
 
 
 | Config | Type | Description | Optional |
 | --------------- | --------------- | --------------- | --------------- |
-| `name` | `str` | Name of the tmux workspace | `no` |
-| `sessions` | `list(dict)` | A list of session objects (see [Session config](#session-config)) | `no` |
+| `name` | `str` | Name of the tmux workspace | no |
+| `sessions` | `list(dict)` | A list of session objects (see [Session config](#session-config)) | no |
 
 
 #### Example workspace config
 ```yaml
-name: MyWorkspace
+name: example_workspace
 
 sessions:
-  - name: MyMainSession
+  - name: main_session
+    workdir: path/to/work/dir
     windows:
       - name: first_window
         panes:
@@ -175,7 +184,8 @@ sessions:
       window: first_window
       pane: 0
 
-  - name: MyHelperSession
+  - name: helper_session
+    workdir: path/to/work/dir
     windows:
       - name: helper_first_window
         panes:

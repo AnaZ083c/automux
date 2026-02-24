@@ -46,12 +46,14 @@ class TmuxPane:
     def create(
         self,
         session_name: str,
+        session_workdir: str,
         window_name: str,
         index: int,
     ) -> None:
         tmux_version = Tmux.get_version()
 
         try:
+            print(f"Info: Creating a new pane for session '{session_name}' in working directory '{session_workdir}'")
             pane_position = "-h" if self.position == "horizontal" else "-v"
             pane_splitter = "-p" if "3.0" in tmux_version else "-l"
             size = f"{self.size}" if "3.0" in tmux_version else f"{self.size}%"
@@ -62,6 +64,8 @@ class TmuxPane:
                     "split-window",
                     "-t",
                     f"{session_name}:{window_name}.{index}",
+                    "-c",
+                    session_workdir,
                     pane_position,
                     pane_splitter,
                     size,

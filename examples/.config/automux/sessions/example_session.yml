@@ -1,4 +1,5 @@
-name: MySession
+name: example_session
+workdir: ~/Projects/
 
 windows:
   - name: first_window

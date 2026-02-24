@@ -63,13 +63,21 @@ class TmuxWindow:
         except CalledProcessError as e:
             raise Exception(f"Failed to execute the command: {self.cmd}, error: {e}")
 
-    def create(self, session_name: str, index: int) -> None:
+    def create(self, session_name: str, session_workdir: str, index: int) -> None:
         try:
             assert self.name is not None
-            print(f"Info: Creating a new window {self.name} at index {index}")
+            if self.name is None:
+                raise Exception(f"Missing window name for session {session_name}")
+
+            print(
+                f"Info: Creating a new window {self.name} at index {index} for session '{session_name}' in working directory '{session_workdir}'"
+            )
             if index == 0:
-                run(["tmux", "rename-window", "-t", f"{session_name}:{index}", self.name])
+                run(["tmux", "rename-window", "-t", f"{session_name}:{index}", self.name], check=True)
             else:
-                run(["tmux", "new-window", "-t", f"{session_name}:{index}", "-n", self.name])
+                run(
+                    ["tmux", "new-window", "-t", f"{session_name}:{index}", "-n", self.name, "-c", session_workdir],
+                    check=True,
+                )
         except CalledProcessError as e:
             raise Exception(f"Failed to create window at index {index}: {e}")
