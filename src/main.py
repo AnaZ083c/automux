@@ -14,14 +14,14 @@ if __name__ == "__main__":
         "-s",
         "--session",
         type=str,
-        help="Start the session using a project's path or session's registered name (using the -R option). Path must be at the root of the project.",
+        help="Start the session with the given name; e.g. you have a config 'mysession.yml', to start: 'automux -w mysession'",
     )
 
     parser.add_argument(
         "-w",
         "--workspace",
         type=str,
-        help="Start a tmux workspace containing sessions using a project's path or session's registered name (using the -R option). Path must be at the root of the project.",
+        help="Start a tmux workspace with the given name; e.g. you have a config 'myworkspace.yml', to start: 'automux -w myworkspace'",
     )
 
     parser.add_argument(

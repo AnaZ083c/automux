@@ -35,11 +35,9 @@ a tmux session and workspace management helper
 options:
   -h, --help            show this help message and exit
   -s, --session SESSION
-                        Start the session using a project's path or session's registered name (using the -R option). Path must be at the root of
-                        the project.
+                        Start the session with the given name; e.g. you have a config 'mysession.yml', to start: 'automux -s mysession'
   -w, --workspace WORKSPACE
-                        Start a tmux workspace containing sessions using a project's path or session's registered name (using the -R option).
-                        Path must be at the root of the project.
+                        Start a tmux workspace with the given name; e.g. you have a config 'myworkspace.yml', to start: 'automux -w myworkspace'
   -cw, --create-workspace CREATE_WORKSPACE
                         Create a tmux workspace config file (comes with a commented example)
   -cs, --create-session CREATE_SESSION
