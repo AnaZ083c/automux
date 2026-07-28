@@ -4,17 +4,20 @@ from pathlib import Path
 from subprocess import run, CalledProcessError, check_output, DEVNULL
 from typing import Any
 
-from utils.tmux_window import TmuxWindow
+from src.utils.tmux_window import TmuxWindow
+from src.utils.helpers import Logger
 
 
 class TmuxSession:
     def __init__(
         self,
+        logger: Logger,
         name: str | None = None,
         workdir: str | None = None,
         windows: list[TmuxWindow] | None = None,
         start_at: dict[str, Any] | None = None,
     ):
+        self.logger = logger
         self.name = name
         self.workdir = str(Path(workdir if workdir is not None else Path.cwd()).expanduser())
         self.windows = windows if windows is not None else []
@@ -28,25 +31,26 @@ class TmuxSession:
         }
 
     @staticmethod
-    def from_config(filename: str) -> "TmuxSession":
+    def from_config(filename: str, logger: Logger) -> "TmuxSession":
         if not Path(filename).is_file():
             raise Exception(f"Config is nowhere to be found: {filename}")
         try:
-            print(f"Info: Getting session data from config {filename}")
+            logger.debug(f"Getting session data from config {filename}")
             with open(filename, "r") as file:
                 config = yaml.safe_load(file)
 
-            return TmuxSession.from_dict(session=config)
+            return TmuxSession.from_dict(session=config, logger=logger)
         except Exception as e:
             raise Exception(f"Couldn't get config: {e}")
 
     @staticmethod
-    def from_dict(session: dict[str, Any]) -> "TmuxSession":
+    def from_dict(session: dict[str, Any], logger: Logger) -> "TmuxSession":
         if "name" not in session:
             raise Exception("Invalid session configuration. Missing required option 'name'")
 
         try:
             tmux_session = TmuxSession(
+                logger=logger,
                 name=session["name"],
                 workdir=session.get("workdir", None),
                 windows=[],
@@ -56,13 +60,12 @@ class TmuxSession:
             windows = session["windows"]
             for w in windows:
                 tmux_window = TmuxWindow(
+                    logger=logger,
                     name=w["name"],
                     cmd=w.get("cmd", None),
                     panes=w.get("panes", None),
                 )
                 tmux_session.windows.append(tmux_window)
-
-            print(f"WORKDIR: {tmux_session.workdir}")
             return tmux_session
         except Exception as e:
             raise Exception(f"Couldn't process session configuration: {e}")
@@ -72,7 +75,7 @@ class TmuxSession:
             if self.name is None:
                 raise Exception("Missing session name in your session config")
 
-            print(f"Info: Creating session {self.name} in working directory in '{self.workdir}'")
+            self.logger.debug(f"Creating session {self.name} in working directory in '{self.workdir}'")
             run(["tmux", "new-session", "-d", "-s", self.name, "-c", self.workdir], check=True)
         except CalledProcessError as e:
             raise Exception(f"Failed to create session {self.name}: {e}")
@@ -90,14 +93,14 @@ class TmuxSession:
 
     def attach(self) -> None:
         try:
-            print(f"Info: Attaching to session: {self.name}")
+            self.logger.debug(f"Attaching to session: {self.name}")
             run(["tmux", "attach-session", "-t", f"{self.name}:0"])
         except CalledProcessError as e:
             raise Exception(f"Failed to create session {self.name}: {e}")
 
     def kill(self) -> None:
         try:
-            print(f"Info: Killing session: {self.name}")
+            self.logger.debug(f"Killing session: {self.name}")
             run(["tmux", "kill-session", "-t", f"{self.name}"])
         except CalledProcessError as e:
             raise Exception(f"Failed to kill session {self.name}: {e}")

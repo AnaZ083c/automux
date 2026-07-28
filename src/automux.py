@@ -1,173 +1,166 @@
 import textwrap
 import sys
 from pathlib import Path
+from os import environ
 
-from utils.tmux_pane import TmuxPane
-from utils.tmux_window import TmuxWindow
-from utils.tmux_session import TmuxSession
-from utils.tmux_workspace import TmuxWorkspace
+from src.utils.tmux_pane import TmuxPane
+from src.utils.tmux_window import TmuxWindow
+from src.utils.tmux_session import TmuxSession
+from src.utils.tmux_workspace import TmuxWorkspace
 
+from src.utils.helpers import Logger
 
-# TODO: is this still needed?
-AUTOMUX_CACHE_PATH = "~/.cache/automux/sessions.yml"
+automux_env_config_path = environ.get("AUTOMUX_CONFIG", str(Path.home() / Path(".config/automux")))
 
 
 class Automux:
-    config_path = Path.home() / Path(".config/automux")
-    # config_path = Path("./examples/.config/automux")
-    sessions_config = config_path / Path("sessions/")
-    workspaces_config = config_path / Path("workspaces/")
+    def __init__(self, logger: Logger):
+        self.logger = logger
 
-    extensions = ("*.yml", "*.yaml")
-    workspace_example = textwrap.dedent("""
-        ## NOTE: This is a generated example for
-        ## you to edit your workspace from
-        ###
-        # name: workspace_name
-        #
-        # sessions:
-        #   - name: main_session
-        #     workdir: /path/to/your/work/dir
-        #     windows:
-        #       - name: first_window
-        #         panes:
-        #           - vertical: 50
-        #             cmd: echo "First pane!"
-        #           - horizontal: 30
-        #             cmd: echo "Second pane!"
-        #           - vertical: 10
-        #             cmd: echo "Third pane!"
-        #         cmd: echo "First window!"
-        #       - name: second_window
-        #         panes:
-        #           - horizontal: 50
-        #           - vertical: 50
-        #         cmd: echo "Second window!"
-        #     start_at:
-        #       window: first_window
-        #       pane: 0
-    """).strip()
+        self.config_path = Path(automux_env_config_path)
+        self.sessions_config = self.config_path / Path("sessions/")
+        self.workspaces_config = self.config_path / Path("workspaces/")
 
-    session_example = textwrap.dedent("""
-        ## NOTE: This is a generated example for
-        ## you to edit your session from
-        ###
-        # name: session_name
-        #
-        # windows:
-        #   - name: first_window
-        #     panes:
-        #       - vertical: 50
-        #         cmd: echo "First pane!"
-        #       - horizontal: 30
-        #         cmd: echo "Second pane!"
-        #       - vertical: 10
-        #         cmd: echo "Third pane!"
-        #     cmd: echo "First window!"
-        #   - name: second_window
-        #     panes:
-        #       - horizontal: 50
-        #       - vertical: 50
-        #     cmd: echo "Second window!"
-        #
-        # start_at:
-        #   window: first_window
-        #   pane: 0
-    """).strip()
+        self.extensions = ("*.yml", "*.yaml")
+        self.workspace_example = textwrap.dedent("""
+            ## NOTE: This is a generated example for
+            ## you to edit your workspace from
+            ###
+            # name: workspace_name
+            #
+            # sessions:
+            #   - name: main_session
+            #     workdir: /path/to/your/work/dir
+            #     windows:
+            #       - name: first_window
+            #         panes:
+            #           - vertical: 50
+            #             cmd: echo "First pane!"
+            #           - horizontal: 30
+            #             cmd: echo "Second pane!"
+            #           - vertical: 10
+            #             cmd: echo "Third pane!"
+            #         cmd: echo "First window!"
+            #       - name: second_window
+            #         panes:
+            #           - horizontal: 50
+            #           - vertical: 50
+            #         cmd: echo "Second window!"
+            #     start_at:
+            #       window: first_window
+            #       pane: 0
+        """).strip()
 
-    @classmethod
-    def is_inited(cls) -> bool:
-        return cls.config_path.is_dir() and cls.sessions_config.is_dir() and cls.workspaces_config.is_dir()
+        self.session_example = textwrap.dedent("""
+            ## NOTE: This is a generated example for
+            ## you to edit your session from
+            ###
+            # name: session_name
+            #
+            # windows:
+            #   - name: first_window
+            #     panes:
+            #       - vertical: 50
+            #         cmd: echo "First pane!"
+            #       - horizontal: 30
+            #         cmd: echo "Second pane!"
+            #       - vertical: 10
+            #         cmd: echo "Third pane!"
+            #     cmd: echo "First window!"
+            #   - name: second_window
+            #     panes:
+            #       - horizontal: 50
+            #       - vertical: 50
+            #     cmd: echo "Second window!"
+            #
+            # start_at:
+            #   window: first_window
+            #   pane: 0
+        """).strip()
 
-    @classmethod
-    def init_config(cls) -> None:
+    def is_inited(self) -> bool:
+        return self.config_path.is_dir() and self.sessions_config.is_dir() and self.workspaces_config.is_dir()
+
+    def init_config(self) -> None:
         try:
-            cls.config_path.mkdir(parents=True, exist_ok=True)
-            cls.sessions_config.mkdir(exist_ok=True)
-            cls.workspaces_config.mkdir(exist_ok=True)
-            print(f"Info: Created automux configuration directories: {cls.config_path}")
+            self.config_path.mkdir(parents=True, exist_ok=True)
+            self.sessions_config.mkdir(exist_ok=True)
+            self.workspaces_config.mkdir(exist_ok=True)
+            self.logger.debug(f"Created automux configuration directories: {self.config_path}")
         except FileExistsError as _:
-            print("Info: configuration already exists, no need to recreate")
+            self.logger.info("Configuration already exists, no need to recreate")
 
-    @classmethod
-    def list_workspaces(cls) -> None:
-        workspaces = [w for e in cls.extensions for w in cls.workspaces_config.glob(e) if w.is_file()]
+    def list_workspaces(self) -> None:
+        workspaces = [w for e in self.extensions for w in self.workspaces_config.glob(e) if w.is_file()]
         print("Workspaces:")
         if len(workspaces) == 0:
-            print("No workspaces yet.")
+            print("  No workspaces yet.")
             return
         for w in workspaces:
             if not w.is_file():
                 continue
-            print(f"\t{w.stem}")
+            print(f"  {w.stem}")
 
-    @classmethod
-    def list_sessions(cls) -> None:
-        sessions = [s for e in cls.extensions for s in cls.sessions_config.glob(e) if s.is_file()]
+    def list_sessions(self) -> None:
+        sessions = [s for e in self.extensions for s in self.sessions_config.glob(e) if s.is_file()]
         print("Sessions:")
         if len(sessions) == 0:
-            print("No sessions yet.")
+            print("  No sessions yet.")
             return
         for s in sessions:
             if not s.is_file():
                 continue
-            print(f"\t{s.stem}")
+            print(f"  {s.stem}")
 
-    @classmethod
-    def list_sessions_and_workspaces(cls) -> None:
-        cls.list_sessions()
-        print("\n")
-        cls.list_workspaces()
+    def list_sessions_and_workspaces(self) -> None:
+        self.list_sessions()
+        self.list_workspaces()
 
-    @classmethod
-    def create_workspace_config(cls, workspace_name: str) -> None:
+    def create_workspace_config(self, workspace_name: str) -> None:
         try:
-            workspace_config_path = (cls.workspaces_config / Path(workspace_name)).with_suffix(".yml")
+            workspace_config_path = (self.workspaces_config / Path(workspace_name)).with_suffix(".yml")
             with open(workspace_config_path, "w") as file:
-                file.write(cls.workspace_example)
-            print(f"Info: Saved workspace config to: {str(workspace_config_path)}")
+                file.write(self.workspace_example)
+            self.logger.info(f"Saved workspace config to: {str(workspace_config_path)}")
         except Exception as e:
-            print(f"Error: Couldn't create config for workspace '{workspace_name}':\n {e}")
+            self.logger.error(f"Error: Couldn't create config for workspace '{workspace_name}':\n {e}")
             sys.exit(1)
 
-    @classmethod
-    def create_session_config(cls, session_name: str) -> None:
+    def create_session_config(self, session_name: str) -> None:
         try:
-            session_config_path = (cls.sessions_config / Path(session_name)).with_suffix(".yml")
+            session_config_path = (self.sessions_config / Path(session_name)).with_suffix(".yml")
             with open(session_config_path, "w") as file:
-                file.write(cls.session_example)
-            print(f"Info: Saved session config to: {str(session_config_path)}")
+                file.write(self.session_example)
+            self.logger.info(f"Saved session config to: {str(session_config_path)}")
         except Exception as e:
-            print(f"Error: Couldn't create config for session '{session_name}':\n {e}")
+            self.logger.error(f"Couldn't create config for session '{session_name}':\n {e}")
             sys.exit(1)
 
-    @classmethod
-    def create_workspace(cls, workspace_name: str) -> None:
-        if not cls.is_inited():
-            print(
-                f"Error: automux configuration not found in '{cls.config_path}'\n ",
-                "You must first create an automux config. You can do this manually or use 'automux --init'",
+    def create_workspace(self, workspace_name: str) -> None:
+        if not self.is_inited():
+            self.logger.error(
+                f"automux configuration not found in '{self.config_path}'\n \
+                You must first create an automux config. You can do this manually or use 'automux --init'"
             )
             sys.exit(2)
 
-        config_path = cls.workspaces_config / Path(f"{workspace_name}.yml")
-        tmux_workspace = TmuxWorkspace.from_config(config_path)
+        config_path = self.workspaces_config / Path(f"{workspace_name}.yml")
+        tmux_workspace = TmuxWorkspace.from_config(config_path, self.logger)
         if tmux_workspace.name is None:
-            print(f"Error: Couldn't load workspace config from this path: {config_path}")
+            self.logger.error(f"Couldn't load workspace config from this path: {config_path}")
             sys.exit(1)
 
         try:
             for session in tmux_workspace.sessions:
-                cls.create_session_from_object(tmux_session=session, auto_attach=False)
-                print(f"Info: Created session '{session.name}'\n")
+                self.create_session_from_object(tmux_session=session, auto_attach=False)
+                self.logger.debug(f"Created session '{session.name}'")
         except Exception as e:
-            print(f"Error: Something went wrong while creating workspace '{tmux_workspace.name}':\n {e}")
+            self.logger.error(f"Something went wrong while creating workspace '{tmux_workspace.name}':\n {e}")
             sys.exit(1)
 
-    @classmethod
-    def create_session_from_object(cls, tmux_session: TmuxSession, auto_attach: bool) -> None:
+    def create_session_from_object(self, tmux_session: TmuxSession, auto_attach: bool) -> None:
         if tmux_session.name is None:
-            print("Error: Invalid session")
+            self.logger.error("Invalid session")
             sys.exit(1)
 
         try:
@@ -182,7 +175,7 @@ class Automux:
 
                     if window.panes is not None:
                         for j, pane in enumerate(window.panes):
-                            print(f"Info: Pane position: {pane.position}, size: {pane.size}")
+                            self.logger.debug(f"Pane position: {pane.position}, size: {pane.size}")
                             pane.create(tmux_session.name, tmux_session.workdir, window.name, j)
                             if pane.cmd is not None:
                                 pane.exec_cmd(tmux_session.name, window.name, j)
@@ -191,27 +184,29 @@ class Automux:
                     start_window = tmux_session.start_at.get("window", 0)
                     start_pane_idx = tmux_session.start_at.get("pane", 0)
 
-                    TmuxWindow.select(tmux_session.name, start_window)
-                    TmuxPane.select(tmux_session.name, start_window, start_pane_idx)
+                    TmuxWindow.select(tmux_session.name, start_window, self.logger)
+                    TmuxPane.select(tmux_session.name, start_window, start_pane_idx, self.logger)
             else:
-                print(f"Info: Session {tmux_session.name} already exists")
+                self.logger.debug(f"Session {tmux_session.name} already exists")
 
             if auto_attach:
                 tmux_session.attach()
+            self.logger.info(f"Attach to session: tmux a -t {tmux_session.name}")
         except Exception as e:
             if tmux_session.is_live():
                 tmux_session.kill()
-            print(f"Error: Something went wrong while creating session '{tmux_session.name}':\n {e}")
+            self.logger.error(f"Something went wrong while creating session '{tmux_session.name}':\n {e}")
             sys.exit(1)
 
-    @classmethod
-    def create_session_from_config(cls, session_name: str) -> None:
-        if not cls.is_inited():
-            print(
-                f"Error: automux configuration not found in '{cls.config_path}'\n ",
-                "You must first create an automux config. You can do this manually or use 'automux --init'",
+    def create_session_from_config(self, session_name: str) -> None:
+        if not self.is_inited():
+            self.logger.debug(
+                f"automux configuration not found in '{self.config_path}'\n \
+                You must first create an automux config. You can do this manually or use 'automux --init'"
             )
             sys.exit(2)
 
-        tmux_session = TmuxSession.from_config(cls.sessions_config / Path(f"{session_name}.yml"))
-        cls.create_session_from_object(tmux_session=tmux_session, auto_attach=False)
+        tmux_session = TmuxSession.from_config(
+            str(self.sessions_config / Path(f"{session_name}.yml")), logger=self.logger
+        )
+        self.create_session_from_object(tmux_session=tmux_session, auto_attach=False)

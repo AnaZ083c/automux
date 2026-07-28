@@ -8,4 +8,4 @@ class Tmux:
             result = check_output(["tmux", "-V"], stderr=DEVNULL, text=True)
             return result
         except CalledProcessError:
-            raise
+            raise Exception("Tmux might not be installed on your system")

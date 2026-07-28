@@ -1,10 +1,10 @@
 import sys
 import argparse
 
-from automux import Automux
+from src.automux import Automux, Logger
 
 
-if __name__ == "__main__":
+def main() -> None:
     parser = argparse.ArgumentParser(
         prog="automux",
         description="a tmux session and workspace management helper",
@@ -66,22 +66,35 @@ if __name__ == "__main__":
         help="List all sessions and workspaces (the file names in your configs).",
     )
 
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Print all steps into the terminal (useful for debugging).",
+    )
+
     args = parser.parse_args()
+    logger = Logger(verbose=args.verbose)
+    automux = Automux(logger=logger)
     if args.init:
-        Automux.init_config()
+        automux.init_config()
     elif args.create_workspace:
-        Automux.create_workspace_config(args.create_workspace)
+        automux.create_workspace_config(args.create_workspace)
     elif args.session:
-        Automux.create_session_from_config(args.session)
+        automux.create_session_from_config(args.session)
     elif args.workspace:
-        Automux.create_workspace(args.workspace)
+        automux.create_workspace(args.workspace)
     elif args.list_workspaces:
-        Automux.list_workspaces()
+        automux.list_workspaces()
     elif args.list_sessions:
-        Automux.list_sessions()
+        automux.list_sessions()
     elif args.list:
-        Automux.list_sessions_and_workspaces()
+        automux.list_sessions_and_workspaces()
     else:
         parser.print_help()
 
     sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()

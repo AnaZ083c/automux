@@ -28,14 +28,14 @@ automux
 ## How to use
 ```console
 $ automux
-usage: automux [-h] [-s SESSION] [-w WORKSPACE] [-cw CREATE_WORKSPACE] [-cs CREATE_SESSION] [-i] [-lw] [-ls] [-l]
+usage: automux [-h] [-s SESSION] [-w WORKSPACE] [-cw CREATE_WORKSPACE] [-cs CREATE_SESSION] [-i] [-lw] [-ls] [-l] [-v]
 
 a tmux session and workspace management helper
 
 options:
   -h, --help            show this help message and exit
   -s, --session SESSION
-                        Start the session with the given name; e.g. you have a config 'mysession.yml', to start: 'automux -s mysession'
+                        Start the session with the given name; e.g. you have a config 'mysession.yml', to start: 'automux -w mysession'
   -w, --workspace WORKSPACE
                         Start a tmux workspace with the given name; e.g. you have a config 'myworkspace.yml', to start: 'automux -w myworkspace'
   -cw, --create-workspace CREATE_WORKSPACE
@@ -47,6 +47,7 @@ options:
                         List all workspaces (the file names in your configs).
   -ls, --list-sessions  List all sessions (the file names in your configs).
   -l, --list            List all sessions and workspaces (the file names in your configs).
+  -v, --verbose         Print all steps into the terminal (useful for debugging).
 ```
 
 ### Session config
@@ -179,10 +180,14 @@ sessions:
 See [requirements](#requirements) first.
 
 ### Running
-#### Using example config
-To run this on the example using the [example config](.tmux/session.yml):
-```shell
-python src/main.py
+```bash
+pip install -e .
+automux
+```
+
+To debug against the provided examples:
+```bash
+AUTOMUX_CONFIG=examples/.config/automux automux -l
 ```
 
 ##### Result

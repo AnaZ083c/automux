@@ -1,16 +1,19 @@
 from subprocess import run, CalledProcessError
 from typing import Any
 
-from utils.tmux_pane import TmuxPane
+from src.utils.tmux_pane import TmuxPane
+from src.utils.helpers import Logger
 
 
 class TmuxWindow:
     def __init__(
         self,
+        logger: Logger,
         name: str | None = None,
         cmd: str | None = None,
         panes: list[dict[str, Any]] | None = None,
     ):
+        self.logger = logger
         self.name = name
         self.cmd = cmd
         self.panes = self.get_panes(panes)
@@ -19,7 +22,7 @@ class TmuxWindow:
         return {
             "name": self.name,
             "cmd": self.cmd,
-            "panes": [p.to_dict() for p in self.panes],
+            "panes": [p.to_dict() for p in self.panes] if self.panes is not None else [],
         }
 
     @classmethod
@@ -27,9 +30,10 @@ class TmuxWindow:
         cls,
         session_name: str,
         window_name: str | int,
+        logger: Logger,
     ) -> None:
         try:
-            print(f"Info: Selected window: {session_name}:{window_name}")
+            logger.debug(f"Selected window: {session_name}:{window_name}")
             run(["tmux", "select-window", "-t", f"{session_name}:{window_name}"])
         except CalledProcessError as e:
             raise Exception(f"Failed to select window: {session_name}:{window_name}, error: {e}")
@@ -40,11 +44,11 @@ class TmuxWindow:
     ) -> list[TmuxPane] | None:
         tmux_panes = []
         if panes_dicts is None:
-            print("Info: No panes in this window.")
+            self.logger.debug("No panes in this window.")
             return None
 
         for pane in panes_dicts:
-            tmux_pane = TmuxPane()
+            tmux_pane = TmuxPane(logger=self.logger)
             for key, value in pane.items():
                 if key in ("horizontal", "vertical"):
                     tmux_pane.position = key
@@ -58,7 +62,7 @@ class TmuxWindow:
     def exec_cmd(self, session_name: str) -> None:
         try:
             assert self.cmd is not None
-            print(f"Info: Executing command: {self.cmd}")
+            self.logger.debug(f"Executing command: {self.cmd}")
             run(["tmux", "send-keys", "-t", f"{session_name}:{self.name}", self.cmd, "C-m"])
         except CalledProcessError as e:
             raise Exception(f"Failed to execute the command: {self.cmd}, error: {e}")
@@ -69,8 +73,8 @@ class TmuxWindow:
             if self.name is None:
                 raise Exception(f"Missing window name for session {session_name}")
 
-            print(
-                f"Info: Creating a new window {self.name} at index {index} for session '{session_name}' in working directory '{session_workdir}'"
+            self.logger.debug(
+                f"Creating a new window {self.name} at index {index} for session '{session_name}' in working directory '{session_workdir}'"
             )
             if index == 0:
                 run(["tmux", "rename-window", "-t", f"{session_name}:{index}", self.name], check=True)

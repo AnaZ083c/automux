@@ -1,16 +1,19 @@
 from typing import Any
 from subprocess import run, CalledProcessError
 
-from utils.tmux import Tmux
+from src.utils.tmux import Tmux
+from src.utils.helpers import Logger
 
 
 class TmuxPane:
     def __init__(
         self,
+        logger: Logger,
         position: str | None = None,
         size: int | None = None,
         cmd: str | None = None,
     ):
+        self.logger = logger
         self.position = position
         self.size = size
         self.cmd = cmd
@@ -28,9 +31,10 @@ class TmuxPane:
         session_name: str,
         window_name: str | int,
         pane_idx: int,
+        logger: Logger,
     ) -> None:
         try:
-            print(f"Info: Selected pane: {session_name}:{window_name}.{pane_idx}")
+            logger.debug(f"Selected pane: {session_name}:{window_name}.{pane_idx}")
             run(["tmux", "select-pane", "-t", f"{session_name}:{window_name}.{pane_idx}"])
         except CalledProcessError as e:
             raise Exception(f"Failed to select pane: {session_name}:{window_name}.{pane_idx}, error: {e}")
@@ -38,7 +42,7 @@ class TmuxPane:
     def exec_cmd(self, session_name: str, window_name: str, index: int) -> None:
         try:
             assert self.cmd is not None
-            print(f"Info: Executing command on window {window_name}.{index}: {self.cmd}")
+            self.logger.debug(f"Executing command on window {window_name}.{index}: {self.cmd}")
             run(["tmux", "send-keys", "-t", f"{session_name}:{window_name}.{index}", self.cmd, "C-m"])
         except CalledProcessError as e:
             raise Exception(f"Failed to execute the command: {self.cmd}, error: {e}")
@@ -53,7 +57,9 @@ class TmuxPane:
         tmux_version = Tmux.get_version()
 
         try:
-            print(f"Info: Creating a new pane for session '{session_name}' in working directory '{session_workdir}'")
+            self.logger.debug(
+                f"Creating a new pane for session '{session_name}' in working directory '{session_workdir}'"
+            )
             pane_position = "-h" if self.position == "horizontal" else "-v"
             pane_splitter = "-p" if "3.0" in tmux_version else "-l"
             size = f"{self.size}" if "3.0" in tmux_version else f"{self.size}%"
