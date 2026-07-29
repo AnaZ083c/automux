@@ -2,6 +2,7 @@ import textwrap
 import sys
 from pathlib import Path
 from os import environ
+from subprocess import call
 
 from src.utils.tmux_pane import TmuxPane
 from src.utils.tmux_window import TmuxWindow
@@ -11,6 +12,8 @@ from src.utils.tmux_workspace import TmuxWorkspace
 from src.utils.helpers import Logger
 
 automux_env_config_path = environ.get("AUTOMUX_CONFIG", str(Path.home() / Path(".config/automux")))
+
+global_editor = environ.get("EDITOR", "vi")
 
 
 class Automux:
@@ -210,3 +213,31 @@ class Automux:
             str(self.sessions_config / Path(f"{session_name}.yml")), logger=self.logger
         )
         self.create_session_from_object(tmux_session=tmux_session, auto_attach=False)
+
+    @staticmethod
+    def _config_is_session(config_path: Path) -> bool:
+        return False
+
+    @staticmethod
+    def _config_is_workspace(config_path: Path) -> bool:
+        return False
+
+    def edit(self, config_name: str, is_workspace: bool) -> None:
+        if not self.is_inited():
+            self.logger.error(
+                f"automux configuration not found in '{self.config_path}'\n \
+                You must first create an automux config. You can do this manually or use 'automux --init'"
+            )
+            sys.exit(2)
+
+        config_path = self.workspaces_config if is_workspace else self.sessions_config
+        config_path = config_path / Path(f"{config_name}.yml")
+        if not config_path.exists():
+            self.logger.error(
+                f"{'Workspace' if is_workspace else 'Session'} '{config_name}' does not exist in the configuration"
+            )
+            sys.exit(2)
+
+        # Open with $EDITOR
+        with open(config_path) as f:
+            call([global_editor, f.name])

@@ -38,6 +38,10 @@ def main() -> None:
         help="Create a tmux session config file (comes with a commented example)",
     )
 
+    parser.add_argument("-ew", "--edit-workspace", type=str, help="Edit a workspace configuration of a given name.")
+
+    parser.add_argument("-es", "--edit-session", type=str, help="Edit a session configuration of a given name.")
+
     parser.add_argument(
         "-i",
         "--init",
@@ -84,6 +88,10 @@ def main() -> None:
         automux.create_session_from_config(args.session)
     elif args.workspace:
         automux.create_workspace(args.workspace)
+    elif args.edit_workspace:
+        automux.edit(args.edit_workspace, True)
+    elif args.edit_session:
+        automux.edit(args.edit_session, False)
     elif args.list_workspaces:
         automux.list_workspaces()
     elif args.list_sessions:

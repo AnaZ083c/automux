@@ -28,7 +28,7 @@ automux
 ## How to use
 ```console
 $ automux
-usage: automux [-h] [-s SESSION] [-w WORKSPACE] [-cw CREATE_WORKSPACE] [-cs CREATE_SESSION] [-i] [-lw] [-ls] [-l] [-v]
+usage: automux [-h] [-s SESSION] [-w WORKSPACE] [-cw CREATE_WORKSPACE] [-cs CREATE_SESSION] [-ew EDIT_WORKSPACE] [-es EDIT_SESSION] [-i] [-lw] [-ls] [-l] [-v]
 
 a tmux session and workspace management helper
 
@@ -42,6 +42,10 @@ options:
                         Create a tmux workspace config file (comes with a commented example)
   -cs, --create-session CREATE_SESSION
                         Create a tmux session config file (comes with a commented example)
+  -ew, --edit-workspace EDIT_WORKSPACE
+                        Edit a workspace configuration of a given name.
+  -es, --edit-session EDIT_SESSION
+                        Edit a session configuration of a given name.
   -i, --init            Init automux configuration: '~/.config/automux/'
   -lw, --list-workspaces
                         List all workspaces (the file names in your configs).
@@ -49,6 +53,9 @@ options:
   -l, --list            List all sessions and workspaces (the file names in your configs).
   -v, --verbose         Print all steps into the terminal (useful for debugging).
 ```
+
+> [!NOTE]
+> For editing, your editor in `$EDITOR` environment variable will be used.
 
 ### Session config
 
@@ -185,13 +192,14 @@ pip install -e .
 automux
 ```
 
-To debug against the provided examples:
-```bash
-AUTOMUX_CONFIG=examples/.config/automux automux -l
-```
-
 ##### Result
 Help will be printed out as shown in [How to use](#how-to-use).
+
+To debug against the provided examples:
+```bash
+# example to list all sessions and workspaces in a set AUTOMUX_CONFIG
+AUTOMUX_CONFIG=examples/.config/automux automux -l
+```
 
 ### Makefile
 This project uses `Makefile` to `format` the code and do `lint` and `sanity` checks.
